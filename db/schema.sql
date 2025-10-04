@@ -2,10 +2,18 @@
 -- Expense Tracker Database Schema
 -- ================================
 
+-- Table for expense/income categories
+CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    emoji TEXT,
+    type TEXT CHECK(type IN ('income','expense')) DEFAULT 'expense'
+);
+
 -- Table for different accounts (bank, wallet, credit card, etc.)
 CREATE TABLE IF NOT EXISTS accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     type TEXT CHECK(type IN ('cash','bank','credit_card','wallet')) NOT NULL,
     balance REAL DEFAULT 0
 );
@@ -27,12 +35,12 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE TABLE IF NOT EXISTS bills (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     account_id INTEGER,
-    name TEXT NOT NULL,       -- e.g., "Electricity Bill" or "Credit Card May"
+    name TEXT NOT NULL,
     amount REAL,
-    due_date TEXT NOT NULL,   -- YYYY-MM-DD
-    pay_from TEXT,            -- optional: earliest date you can pay
-    pay_until TEXT,           -- optional: latest date (before late fees)
-    is_paid INTEGER DEFAULT 0, -- 0 = unpaid, 1 = paid
+    due_date TEXT NOT NULL,
+    pay_from TEXT,
+    pay_until TEXT,
+    is_paid INTEGER DEFAULT 0,
     FOREIGN KEY (account_id) REFERENCES accounts (id)
 );
 
@@ -44,3 +52,8 @@ CREATE TABLE IF NOT EXISTS reminders_log (
     message TEXT,
     FOREIGN KEY (bill_id) REFERENCES bills (id)
 );
+
+-- Indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
+CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);

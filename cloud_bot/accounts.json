@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Bank Account",
+    "type": "bank",
+    "emoji": "🏦"
+  },
+  {
+    "name": "Cash Wallet",
+    "type": "cash",
+    "emoji": "💰"
+  },
+  {
+    "name": "DBS Credit Card",
+    "type": "credit_card",
+    "emoji": "💳"
+  },
+  {
+    "name": "Grab Wallet",
+    "type": "wallet",
+    "emoji": "👛"
+  },
+  {
+    "name": "Maybank Credit Card",
+    "type": "credit_card",
+    "emoji": "💳"
+  }
+]

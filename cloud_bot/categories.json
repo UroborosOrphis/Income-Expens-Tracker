@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Bills",
+    "emoji": "📄"
+  },
+  {
+    "name": "Entertainment",
+    "emoji": "🎬"
+  },
+  {
+    "name": "Food",
+    "emoji": "🍔"
+  },
+  {
+    "name": "Groceries",
+    "emoji": "🛒"
+  },
+  {
+    "name": "Health",
+    "emoji": "💊"
+  },
+  {
+    "name": "Shopping",
+    "emoji": "🛍️"
+  },
+  {
+    "name": "Transport",
+    "emoji": "🚗"
+  }
+]
