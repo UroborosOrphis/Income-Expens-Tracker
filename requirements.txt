@@ -1,0 +1,15 @@
+﻿discord.py==2.3.2
+python-dotenv==1.0.0
+
+sqlite-utils==3.34
+
+matplotlib==3.7.3
+pandas==2.1.4
+reportlab==4.0.8
+fpdf2==2.7.9
+
+rich==13.7.0
+schedule==1.2.1
+
+# Optional AI
+# openai==1.12.0
