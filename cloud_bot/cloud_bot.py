@@ -406,6 +406,54 @@ async def ping(ctx):
     await ctx.send("Pong! Use /expense for slash commands.")
 
 
+WEBHOOK_CHANNEL_ID = 1424032376589385868  # ⬅️ REPLACE WITH YOUR CHANNEL ID
+
+@bot.event
+async def on_message(message):
+    # Ignore messages from the bot itself and other channels
+    if message.author == bot.user or message.channel.id != WEBHOOK_CHANNEL_ID:
+        # Crucial: Process prefix commands (like !ping) after ignoring the webhook.
+        await bot.process_commands(message)
+        return
+
+    # Check if the message content looks like your expense format
+    content = message.content.strip()
+    if '|' in content and not content.startswith(('!', '$')):
+        # Attempt to parse the content directly
+        try:
+            parts = [p.strip() for p in content.split('|')]
+
+            if len(parts) >= 3:
+                amount_str, category, account = parts[0], parts[1], parts[2]
+                description = parts[3] if len(parts) > 3 else ""
+
+                amount = float(amount_str)
+                if amount <= 0:
+                    raise ValueError("Amount must be positive.")
+
+                # Use the Webhook name as the user since message.author is the bot itself
+                webhook_name = message.author.display_name if message.webhook_id else str(message.author)
+
+                add_expense_to_buffer(
+                    user=webhook_name,
+                    amount=amount,
+                    category=category,
+                    account=account,
+                    description=description
+                )
+
+                await message.add_reaction("✅")  # Send reaction for success
+
+            else:
+                await message.add_reaction("⚠️")  # Send reaction for failure (too few fields)
+
+        except Exception:
+            # Catch all errors (e.g., non-float amount) and react with an error emoji
+            await message.add_reaction("❌")
+
+    # Always process commands (in case a human user messages the channel)
+    await bot.process_commands(message)
+
 # ======================
 # Run Bot
 # ======================

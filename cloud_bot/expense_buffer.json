@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "user": "uroborosorphis",
+    "amount": 50.0,
+    "category": "Bills",
+    "account": "Bank Account",
+    "description": "",
+    "date": "2025-10-06",
+    "timestamp": "2025-10-06T00:00:08.447659"
+  },
+  {
+    "user": "BotDoor",
+    "amount": 50.0,
+    "category": "Groceries",
+    "account": "Bank Account",
+    "description": "Weekly grocery run",
+    "date": "2025-10-06",
+    "timestamp": "2025-10-06T00:10:44.111466"
+  },
+  {
+    "user": "BotDoor",
+    "amount": 50.0,
+    "category": "Groceries",
+    "account": "Bank Account",
+    "description": "Weekly grocery run",
+    "date": "2025-10-06",
+    "timestamp": "2025-10-06T00:11:37.863552"
+  }
+]
