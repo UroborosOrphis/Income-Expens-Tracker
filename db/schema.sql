@@ -1,59 +1,107 @@
--- ================================
--- Expense Tracker Database Schema
--- ================================
-
--- Table for expense/income categories
-CREATE TABLE IF NOT EXISTS categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    emoji TEXT,
-    type TEXT CHECK(type IN ('income','expense')) DEFAULT 'expense'
+-- Accounts: bank, wallet, credit card, etc.
+CREATE TABLE accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL, -- 'bank', 'wallet', 'credit_card'
+  virtual_balance REAL DEFAULT 0,
+  active INTEGER DEFAULT 1
 );
 
--- Table for different accounts (bank, wallet, credit card, etc.)
-CREATE TABLE IF NOT EXISTS accounts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    type TEXT CHECK(type IN ('cash','bank','credit_card','wallet')) NOT NULL,
-    balance REAL DEFAULT 0
+-- Categories: groceries, transport, salary, etc.
+CREATE TABLE categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  emoji TEXT,
+  type TEXT NOT NULL -- 'income' or 'expense'
 );
 
--- Table for income and expense transactions
-CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER NOT NULL,
-    date TEXT NOT NULL, -- ISO format: YYYY-MM-DD
-    amount REAL NOT NULL,
-    category TEXT,
-    description TEXT,
-    type TEXT CHECK(type IN ('income','expense','transfer')) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id) REFERENCES accounts (id)
+-- Tags: flexible labels for transactions
+CREATE TABLE tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL
 );
 
--- Table for recurring bills / credit card due dates
-CREATE TABLE IF NOT EXISTS bills (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER,
-    name TEXT NOT NULL,
-    amount REAL,
-    due_date TEXT NOT NULL,
-    pay_from TEXT,
-    pay_until TEXT,
-    is_paid INTEGER DEFAULT 0,
-    FOREIGN KEY (account_id) REFERENCES accounts (id)
+-- Transactions: income, expense, transfer
+CREATE TABLE transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  account_id INTEGER NOT NULL,
+  category_id INTEGER,
+  amount REAL NOT NULL,
+  type TEXT NOT NULL, -- 'income', 'expense', 'transfer'
+  date TEXT NOT NULL,
+  description TEXT,
+  notes TEXT,
+  is_recurring INTEGER DEFAULT 0,
+  receipt_image_path TEXT,
+  FOREIGN KEY (account_id) REFERENCES accounts(id),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
--- Table to track reminders already sent (prevents spam)
-CREATE TABLE IF NOT EXISTS reminders_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bill_id INTEGER,
-    reminder_date TEXT NOT NULL,
-    message TEXT,
-    FOREIGN KEY (bill_id) REFERENCES bills (id)
+-- Many-to-many relationship between transactions and tags
+CREATE TABLE transaction_tags (
+  transaction_id INTEGER,
+  tag_id INTEGER,
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
 
--- Indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
-CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
-CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
+-- Transfers: links two transactions (from and to)
+CREATE TABLE transfers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  from_transaction_id INTEGER,
+  to_transaction_id INTEGER,
+  FOREIGN KEY (from_transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (to_transaction_id) REFERENCES transactions(id)
+);
+
+-- Bills: recurring payments like rent, utilities
+CREATE TABLE bills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  amount REAL NOT NULL,
+  due_date TEXT NOT NULL,
+  repeat_freq TEXT NOT NULL, -- 'monthly', 'weekly', etc.
+  account_id INTEGER NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES accounts(id)
+);
+
+-- Reminder log: tracks when reminders were sent
+CREATE TABLE reminder_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  bill_id INTEGER NOT NULL,
+  sent_date TEXT NOT NULL,
+  FOREIGN KEY (bill_id) REFERENCES bills(id)
+);
+
+-- Subscriptions: recurring charges with variable amounts
+CREATE TABLE subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  frequency TEXT NOT NULL, -- 'monthly', 'yearly', etc.
+  next_due_date TEXT NOT NULL,
+  account_id INTEGER NOT NULL,
+  category_id INTEGER,
+  last_posted_date TEXT,
+  active INTEGER DEFAULT 1,
+  FOREIGN KEY (account_id) REFERENCES accounts(id),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+-- Budgets: optional monthly limits per category
+CREATE TABLE budgets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  category_id INTEGER NOT NULL,
+  amount REAL NOT NULL,
+  period TEXT NOT NULL, -- 'monthly', 'weekly'
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+-- Goals: savings or spending targets
+CREATE TABLE goals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  target_amount REAL NOT NULL,
+  category_id INTEGER,
+  deadline TEXT,
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
