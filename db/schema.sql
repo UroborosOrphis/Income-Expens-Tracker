@@ -26,7 +26,6 @@ CREATE TABLE transactions (
   description TEXT,
   notes TEXT,
   is_recurring INTEGER DEFAULT 0,
-  receipt_image_path TEXT,
   FOREIGN KEY (account_id) REFERENCES accounts(id),
   FOREIGN KEY (category_id) REFERENCES categories(id)
 );

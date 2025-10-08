@@ -35,19 +35,19 @@ def seed_db():
     # --- Transactions ---
     transactions = [
         # Income
-        (2, 1, 3000.00, "income", "2025-10-01", "Monthly Salary", "October salary", 0, None),
+        (2, 1, 3000.00, "income", "2025-10-01", "Monthly Salary", "October salary", 0),
         # Expense
-        (2, 2, 150.00, "expense", "2025-10-02", "Groceries at Tesco", None, 0, None),
+        (2, 2, 150.00, "expense", "2025-10-02", "Groceries at Tesco", None, 0),
         # Transfer: Bank -> Wallet
-        (2, None, -200.00, "transfer", "2025-10-03", "Reload wallet", None, 0, None),
-        (1, None, 200.00, "transfer", "2025-10-03", "Reload from bank", None, 0, None),
+        (2, None, -200.00, "transfer", "2025-10-03", "Reload wallet", None, 0),
+        (1, None, 200.00, "transfer", "2025-10-03", "Reload from bank", None, 0),
         # Credit card fee
-        (3, 5, 2.00, "expense", "2025-10-03", "Processing fee", None, 0, None),
+        (3, 5, 2.00, "expense", "2025-10-03", "Processing fee", None, 0),
     ]
     cursor.executemany(
         """INSERT INTO transactions
-        (account_id, category_id, amount, type, date, description, notes, is_recurring, receipt_image_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (account_id, category_id, amount, type, date, description, notes, is_recurring)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         transactions,
     )
 

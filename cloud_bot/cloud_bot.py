@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 from pathlib import Path
 import discord
@@ -322,43 +322,6 @@ async def slash_expense(interaction: discord.Interaction, amount: float):
     )
 
 
-@bot.tree.command(name="expense_quick", description="Quickly log an expense (for automation)")
-@app_commands.describe(
-    amount="Amount spent",
-    category="Expense category",
-    account="Payment account",
-    description="Optional description"
-)
-@app_commands.choices(category=[
-    app_commands.Choice(name=cat["name"], value=cat["name"])
-    for cat in load_categories()[:25]  # Discord limit: 25 choices
-])
-async def slash_expense_quick(
-        interaction: discord.Interaction,
-        amount: float,
-        category: str,
-        account: str,
-        description: str = ""
-):
-    """Quick expense logging for automation"""
-    if amount <= 0:
-        await interaction.response.send_message("Amount must be positive.", ephemeral=True)
-        return
-
-    entry = add_expense_to_buffer(
-        user=str(interaction.user),
-        amount=amount,
-        category=category,
-        account=account,
-        description=description
-    )
-
-    await interaction.response.send_message(
-        f"Quick expense logged: {amount:.2f} | {category} | {account}",
-        ephemeral=False
-    )
-
-
 @bot.tree.command(name="showbuffer", description="Show recent expenses in buffer")
 async def slash_showbuffer(interaction: discord.Interaction):
     """Show current expense buffer"""
@@ -406,7 +369,7 @@ async def ping(ctx):
     await ctx.send("Pong! Use /expense for slash commands.")
 
 
-WEBHOOK_CHANNEL_ID = 1424032376589385868  # ⬅️ REPLACE WITH YOUR CHANNEL ID
+WEBHOOK_CHANNEL_ID = int(os.getenv("WEBHOOK_CHANNEL_ID", "1424032376589385868"))
 
 @bot.event
 async def on_message(message):
