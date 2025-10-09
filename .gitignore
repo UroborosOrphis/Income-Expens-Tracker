@@ -17,5 +17,6 @@ logs/
 # Reports (optional: keep only final exports)
 reports/
 
-# Temp Transfers Files
-# Transfers/
+# My Statements
+Transfers/csv
+
