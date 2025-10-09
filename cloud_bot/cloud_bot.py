@@ -57,10 +57,10 @@ def load_categories():
             return data
     # Fallback defaults if file doesn't exist
     return [
-        {"name": "Food", "emoji": "🍔"},
-        {"name": "Transport", "emoji": "🚗"},
-        {"name": "Bills", "emoji": "📄"},
-        {"name": "Other", "emoji": "📦"}
+        {"name": "Food", "emoji": "🍔", "type": "expense"},
+        {"name": "Transport", "emoji": "🚗", "type": "expense"},
+        {"name": "Bills", "emoji": "📄", "type": "expense"},
+        {"name": "Other", "emoji": "📦", "type": "expense"}
     ]
 
 
@@ -72,7 +72,7 @@ def load_accounts():
             return data
     # Fallback defaults if file doesn't exist
     return [
-        {"name": "Cash Wallet", "type": "cash", "emoji": "💰"},
+        {"name": "Cash Wallet", "type": "wallet", "emoji": "💰"},
         {"name": "Credit Card", "type": "credit_card", "emoji": "💳"}
     ]
 
@@ -92,30 +92,42 @@ def load_buffer():
         try:
             with open(BUFFER_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except json.JSONDecodeError:
-            # This handles the "Expecting value: line 1 column 1" error
-            print(f"Warning: Expense buffer file ({BUFFER_FILE.name}) is empty or corrupted. Resetting buffer to [].")
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            # Handle JSON errors and encoding issues (e.g., invalid UTF-8)
+            print(f"Warning: Expense buffer file ({BUFFER_FILE.name}) is corrupted or has encoding issues. Resetting buffer to []. Error: {e}")
             return []
     return [] # File doesn't exist, return empty list
 
 
 def save_buffer(buffer):
     """Save expense buffer to JSON"""
-    with open(BUFFER_FILE, "w", encoding="utf-8") as f:
-        json.dump(buffer, f, indent=2, ensure_ascii=False)
+    try:
+        with open(BUFFER_FILE, "w", encoding="utf-8") as f:
+            json.dump(buffer, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving buffer: {e}")
 
 
 def add_expense_to_buffer(user, amount, category, account, description=""):
-    """Add an expense entry to buffer"""
+    """Add an expense entry to buffer with IDs from JSON"""
     buffer = load_buffer()
+    
+    # Get ID from JSON data
+    category_id = next((cat["id"] for cat in CATEGORIES if cat["name"] == category), None)
+    account_id = next((acc["id"] for acc in ACCOUNTS if acc["name"] == account), None)
+    
+    if not category_id or not account_id:
+        raise ValueError(f"Invalid category or account: {category}, {account}")
+    
     entry = {
-        "user": user,
+        "account_id": account_id,
+        "category_id": category_id,
         "amount": float(amount),
-        "category": category,
-        "account": account,
-        "description": description,
+        "type": "expense",      # Default to expense
         "date": datetime.now().strftime("%Y-%m-%d"),
-        "timestamp": datetime.now().isoformat()
+        "description": description,
+        "notes": user,         # Map user to notes field
+        "is_recurring": 0      # Default to non-recurring
     }
     buffer.append(entry)
     save_buffer(buffer)
@@ -334,8 +346,12 @@ async def slash_showbuffer(interaction: discord.Interaction):
     recent = buffer[-10:]
     lines = []
     for i, e in enumerate(recent, 1):
+        # Map IDs back to names for display
+        category_name = next((cat["name"] for cat in CATEGORIES if cat["id"] == e["category_id"]), "Unknown")
+        account_name = next((acc["name"] for acc in ACCOUNTS if acc["id"] == e["account_id"]), "Unknown")
+        
         lines.append(
-            f"{i}. {e['amount']:.2f} | {e['category']} | {e['account']} | {e.get('description', '')}"
+            f"{i}. {e['amount']:.2f} | {category_name} | {account_name} | {e.get('description', '')}"
         )
 
     await interaction.response.send_message(
