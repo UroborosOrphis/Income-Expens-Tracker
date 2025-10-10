@@ -20,6 +20,12 @@ Personal Project to create my own self-hosted Income Expense Tracker
 ```
 
 
+## SQLite Usage Notes
+- For this personal deployment, using one connection per helper in `pc_bot/db_manager.py` is acceptable; SQLite handles light workloads well.
+- When batching several related operations, wrap them in a single connection/transaction to gain atomicity and marginal performance boosts.
+- Consider upgrading to persistent connections or a larger database (e.g., PostgreSQL) only if the app grows beyond single-user scale.
+
+
 
 
 
